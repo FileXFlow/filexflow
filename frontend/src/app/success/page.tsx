@@ -1,0 +1,1 @@
+export default function Success(){return <div>Payment confirmed.</div>}

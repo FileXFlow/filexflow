@@ -1,0 +1,15 @@
+[project]
+name = "filexflow-backend"
+version = "0.0.1"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "python-multipart",
+  "pydantic-settings",
+  "pdfplumber",
+  "openpyxl",
+  "img2pdf",
+  "pymupdf",
+  "python-pptx"
+]
