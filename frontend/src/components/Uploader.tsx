@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { uploadAndConvert } from "@/lib/api";
+import { uploadAndConvert } from "../lib/api";
 
 type Kind = 'pdf2docx'|'pdf2xlsx'|'pdf2csv'|'pdf2pptx'|'pdf2html'|'pdf2jpg'|'jpg2pdf'|'docx2pdf'|'xlsx2pdf'|'pptx2pdf'|'html2pdf';
 
