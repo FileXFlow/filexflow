@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 export default function Pricing(){
   function payPerFile(){ window.location.href="LEMON_ONE_OFF_URL"; }
   function subscribe(){ window.location.href="LEMON_SUBSCRIPTION_URL"; }
