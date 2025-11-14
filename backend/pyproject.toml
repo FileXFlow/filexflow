@@ -11,5 +11,6 @@ dependencies = [
   "openpyxl",
   "img2pdf",
   "pymupdf",
-  "python-pptx"
+  "python-pptx",
+  "python-docx"
 ]
