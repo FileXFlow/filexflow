@@ -1,12 +1,29 @@
-import subprocess, tempfile, os, io, csv, pdfplumber, fitz, img2pdf
+import subprocess, tempfile, os, io, csv, pdfplumber, fitz, img2pdf, html
 from openpyxl import Workbook
+from docx import Document
 LIBREOFFICE_BIN = os.environ.get("LIBREOFFICE_BIN", "soffice")
 def pdf_to_docx(pdf_bytes: bytes) -> bytes:
-    with tempfile.TemporaryDirectory() as tmp:
-        in_path = os.path.join(tmp, "in.pdf"); out_dir = tmp
-        open(in_path,"wb").write(pdf_bytes)
-        subprocess.check_call([LIBREOFFICE_BIN,"--headless","--convert-to","docx",in_path,"--outdir",out_dir])
-        return open(os.path.join(out_dir,"in.docx"),"rb").read()
+    """
+    Convierte un PDF en un DOCX simple, solo texto (sin formato avanzado),
+    usando pdfplumber + python-docx. No depende de LibreOffice.
+    """
+    doc = Document()
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        num_pages = len(pdf.pages)
+        for i, page in enumerate(pdf.pages, start=1):
+            text = page.extract_text() or ""
+            if text.strip():
+                for line in text.splitlines():
+                    doc.add_paragraph(line)
+            else:
+                # Página sin texto (por ejemplo, escaneada)
+                doc.add_paragraph("[Page without extractable text]")
+            if i != num_pages:
+                doc.add_page_break()
+
+    bio = io.BytesIO()
+    doc.save(bio)
+    return bio.getvalue()
 def pdf_to_csv(pdf_bytes: bytes) -> bytes:
     output = io.StringIO(newline=""); import csv as _csv; writer = _csv.writer(output)
     with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
@@ -25,10 +42,20 @@ def pdf_to_xlsx(pdf_bytes: bytes) -> bytes:
             r+=1
     bio = io.BytesIO(); wb.save(bio); return bio.getvalue()
 def pdf_to_html(pdf_bytes: bytes) -> bytes:
-    with tempfile.TemporaryDirectory() as tmp:
-        in_path = os.path.join(tmp,"in.pdf"); open(in_path,"wb").write(pdf_bytes)
-        subprocess.check_call([LIBREOFFICE_BIN,"--headless","--convert-to","html",in_path,"--outdir",tmp])
-        return open(os.path.join(tmp,"in.html"),"rb").read()
+    """
+    Convierte PDF a un HTML muy simple: título de página + texto en <pre>.
+    No usa LibreOffice, solo pdfplumber.
+    """
+    parts: list[str] = ["<html><body>"]
+    with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+        for i, page in enumerate(pdf.pages, start=1):
+            text = page.extract_text() or ""
+            parts.append(f"<h2>Page {i}</h2>")
+            parts.append("<pre>")
+            parts.append(html.escape(text))
+            parts.append("</pre>")
+    parts.append("</body></html>")
+    return "\n".join(parts).encode("utf-8")
 def pdf_to_pptx(pdf_bytes: bytes) -> bytes:
     from pptx import Presentation; from pptx.util import Inches
     prs = Presentation(); blank = prs.slide_layouts[6]
